@@ -1,0 +1,47 @@
+version: '3'
+services:
+  mysql:
+    container_name: some-mysql
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    networks:
+      - prestashop_network
+    volumes:
+      - dbdata:/var/lib/mysql
+  prestashop:
+    container_name: prestashop
+    image: prestashop/prestashop:latest
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - 8080:80
+    environment:
+      DB_SERVER: some-mysql
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWD}
+      PS_INSTALL_AUTO: 1
+      PS_DOMAIN: ${PS_DOMAIN}:8080
+      PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN}
+      PS_FOLDER_INSTALL: ${PS_FOLDER_INSTALL}
+      ADMIN_MAIL: ${ADMIN_MAIL}
+      ADMIN_PASSWD: ${ADMIN_PASSWD}
+      PS_COUNTRY: ${PS_COUNTRY}
+      PS_LANGUAGE: ${PS_LANGUAGE}
+      PS_DEV_MODE: ${PS_DEV_MODE}
+    networks:
+      - prestashop_network
+    volumes:
+      - type: bind
+        source: ./modules/${MODULE_NAME} # local path to the module
+        target: /var/www/html/modules/${MODULE_NAME} # path to be mounted in the container
+      - psdata:/var/www/html
+networks:
+    prestashop_network:
+volumes:
+  psdata:
+  dbdata:
